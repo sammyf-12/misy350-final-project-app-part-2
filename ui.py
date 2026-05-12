@@ -1,4 +1,3 @@
-
 import streamlit as st
 
 class UIManager:
@@ -320,34 +319,64 @@ class UIManager:
                 self.inventory_service.get_inventory()
             )
 
-            with tabs[0]:
+        with tabs[0]:
 
-                for item in inventory:
+                product_images = {
+                    "Muffin": "muffin.png",
+                    "Coffee": "coffee.jpeg",
+                    "Cookie": "cookie.jpeg",
+                    "Cake": "cake.jpeg",
+                    "Bread": "bread.jpeg",
+                    "Orange Juice": "orangejuice.jpeg",
+                    "Apple Juice": "applejuice.jpeg"
+                }
 
-                    with st.container(border=True):
+                search = st.text_input(
+                    "Search inventory",
+                    key="owner_inventory_search"
+                )
 
-                        cols = st.columns([4, 1])
+                filtered_inventory = [
+                    item for item in inventory
+                    if search.lower() in item["name"].lower()
+                ]
 
-                        with cols[0]:
+                if filtered_inventory:
 
-                            st.markdown(
-                                f"""
-                                **{item['name']}**
+                    for item in filtered_inventory:
 
-                                Price: ${item['price']:.2f}  
-                                Stock: {item['stock']}
-                                """
-                            )
+                        with st.container(border=True):
 
-                        with cols[1]:
+                            cols = st.columns([4, 1])
 
-                            if item["stock"] <= 5:
-                                st.warning("Low")
-                            else:
-                                st.success("In Stock")
+                            with cols[0]:
+
+                                st.markdown(
+                                    f"""
+                                    **{item['name']}**
+
+                                    Price: ${item['price']:.2f}  
+                                    Stock: {item['stock']}
+                                    """
+                                )
+
+                                image_path = product_images.get(item["name"])
+
+                                if image_path:
+                                    st.image(image_path, width=120)
+
+                            with cols[1]:
+
+                                if item["stock"] <= 5:
+                                    st.warning("Low")
+                                else:
+                                    st.success("In Stock")
+
+                else:
+                    st.info("No products match your search.")
 
 
-            with tabs[1]:
+        with tabs[1]:
 
                 st.subheader("Add Product")
 
@@ -407,7 +436,7 @@ class UIManager:
 
                         st.rerun()
 
-            with tabs[2]:
+        with tabs[2]:
 
                 st.subheader("Update Price")
 
@@ -464,7 +493,7 @@ class UIManager:
                 else:
                     st.info("No products available to update.")
 
-            with tabs[3]:
+        with tabs[3]:
 
                 st.subheader("Restock Product")
 
@@ -522,7 +551,7 @@ class UIManager:
                 else:
                     st.info("No products available to restock.")
 
-            with tabs[4]:
+        with tabs[4]:
 
                 st.subheader("Delete Product")
 
@@ -577,7 +606,7 @@ class UIManager:
                 else:
                     st.info("No products available to delete.")
 
-            with tabs[5]:
+        with tabs[5]:
 
                 st.subheader("Orders")
 
@@ -626,34 +655,65 @@ class UIManager:
             tabs = st.tabs([
                 "Catalog",
                 "Sales",
+                "Cancel Orders",
                 "Low Stock"
             ])
 
             with tabs[0]:
 
-                for item in inventory:
+                product_images = {
+                    "Muffin": "muffin.png",
+                    "Coffee": "coffee.jpeg",
+                    "Cookie": "cookie.jpeg",
+                    "Cake": "cake.jpeg",
+                    "Bread": "bread.jpeg",
+                    "Orange Juice": "orangejuice.jpeg",
+                    "Apple Juice": "applejuice.jpeg"
+                }
 
-                    with st.container(border=True):
+                search = st.text_input(
+                    "Search catalog",
+                    key="employee_inventory_search"
+                )
 
-                        cols = st.columns([4, 1])
+                filtered_inventory = [
+                    item for item in inventory
+                    if search.lower() in item["name"].lower()
+                ]
 
-                        with cols[0]:
+                if filtered_inventory:
 
-                            st.markdown(
-                                f"""
-                                **{item['name']}**
+                    for item in filtered_inventory:
 
-                                Price: ${item['price']:.2f}  
-                                Stock: {item['stock']}
-                                """
-                            )
+                        with st.container(border=True):
 
-                        with cols[1]:
+                            cols = st.columns([4, 1])
 
-                            if item["stock"] <= 5:
-                                st.warning("Low")
-                            else:
-                                st.success("In Stock")
+                            with cols[0]:
+
+                                st.markdown(
+                                    f"""
+                                    **{item['name']}**
+
+                                    Price: ${item['price']:.2f}  
+                                    Stock: {item['stock']}
+                                    """
+                                )
+
+                                image_path = product_images.get(item["name"])
+
+                                if image_path:
+                                    st.image(image_path, width=120)
+
+                            with cols[1]:
+
+                                if item["stock"] <= 5:
+                                    st.warning("Low")
+                                else:
+                                    st.success("In Stock")
+
+                else:
+                    st.info("No products match your search.")
 
             with tabs[1]:
 
@@ -734,8 +794,82 @@ class UIManager:
 
                 else:
                     st.info("No products available to sell.")
-
+            
             with tabs[2]:
+
+                st.subheader("Cancel Orders")
+
+                orders = self.order_service.get_all_orders()
+                inventory = self.inventory_service.get_inventory()
+
+                active_orders = [
+                    order for order in orders
+                    if order["status"] != "Canceled"
+                ]
+
+                if active_orders:
+
+                    order_options = [
+                        f"Order {order['order_id']} - {order['item']} - ${order['total']:.2f}"
+                        for order in active_orders
+                    ]
+
+                    selected_order = st.selectbox(
+                        "Select Order to Cancel",
+                        order_options,
+                        key="cancel_order_select"
+                    )
+
+                    selected_index = order_options.index(selected_order)
+                    order_to_cancel = active_orders[selected_index]
+
+                    st.warning(
+                        "Canceling an order will mark it as canceled and return the quantity to inventory."
+                    )
+
+                    if st.button("Cancel Order"):
+
+                        for order in orders:
+
+                            if order["order_id"] == order_to_cancel["order_id"]:
+
+                                order["status"] = "Canceled"
+
+                        for item in inventory:
+
+                            if item["name"] == order_to_cancel["item"]:
+
+                                old_stock = item["stock"]
+                                item["stock"] = item["stock"] + order_to_cancel["quantity"]
+                                new_stock = item["stock"]
+
+                        from data import DataManager
+
+                        DataManager.save_orders(orders)
+                        DataManager.save_inventory(inventory)
+
+                        st.success("Order canceled successfully.")
+
+                        with st.container(border=True):
+
+                            st.markdown("### Cancellation Receipt")
+                            st.markdown(f"**Order ID:** {order_to_cancel['order_id']}")
+                            st.markdown(f"**Item:** {order_to_cancel['item']}")
+                            st.markdown(f"**Quantity Returned:** {order_to_cancel['quantity']}")
+                            st.markdown(f"**Previous Stock:** {old_stock}")
+                            st.markdown(f"**Updated Stock:** {new_stock}")
+                            st.markdown("**Status:** Canceled")
+
+                        import time
+
+                        time.sleep(5)
+
+                        st.rerun()
+
+                else:
+                    st.info("No active orders available to cancel.")
+
+            with tabs[3]:
 
                 low_stock = [
                     item for item in inventory

@@ -1,4 +1,3 @@
-
 from data import DataManager
 import os
 from dotenv import load_dotenv
@@ -36,11 +35,12 @@ class User:
 
 class InventoryItem:
 
-    def __init__(self, item_id, name, price, stock):
+    def __init__(self, item_id, name, price, stock, image=None):
         self.item_id = item_id
         self.name = name
         self.price = price
         self.stock = stock
+        self.image = image
 
     def restock(self, quantity):
         self.stock += quantity
@@ -305,5 +305,3 @@ class AIChatAssistant:
         )
 
         return response.choices[0].message.content
-
-
